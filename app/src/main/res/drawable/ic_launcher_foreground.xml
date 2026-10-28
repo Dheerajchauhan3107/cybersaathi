@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Cyber Shield Outer Glow / Outline -->
+    <path
+        android:fillColor="#153744"
+        android:pathData="M54,20 L82,31 L82,56 C82,73 70,86 54,92 C38,86 26,73 26,56 L26,31 Z" />
+
+    <!-- Inner Shield Gradient / Surface -->
+    <path
+        android:fillColor="#101827"
+        android:strokeColor="#54F1E8"
+        android:strokeWidth="2.5"
+        android:pathData="M54,24 L78,34 L78,55 C78,70 67,82 54,87 C41,82 30,70 30,55 L30,34 Z" />
+
+    <!-- Circuit Nodes & Connecting Lines -->
+    <path
+        android:strokeColor="#629BFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M54,24 L54,38 M30,55 L42,55 M78,55 L66,55" />
+
+    <path
+        android:fillColor="#54F1E8"
+        android:pathData="M54,38m-3,0a3,3 0 1,0 6,0a3,3 0 1,0 -6,0 M42,55m-2.5,0a2.5,2.5 0 1,0 5,0a2.5,2.5 0 1,0 -5,0 M66,55m-2.5,0a2.5,2.5 0 1,0 5,0a2.5,2.5 0 1,0 -5,0" />
+
+    <!-- Protective Shield Checkmark / Spark -->
+    <path
+        android:strokeColor="#54F1E8"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M43,56 L51,64 L65,47" />
+
+</vector>
