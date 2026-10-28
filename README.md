@@ -1,20 +1,40 @@
 # CyberSaathi by DC DEVELOPERS 🛡️
 
+[![Android](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com)
+[![Kotlin](https://img.shields.io/badge/Language-Kotlin-blue.svg)](https://kotlinlang.org)
+[![Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-cyan.svg)](https://developer.android.com/jetpack/compose)
+[![Release](https://img.shields.io/badge/Release-v1.0.0-brightgreen.svg)](https://github.com/Dheerajchauhan3107/cybersaathi/releases/tag/v1.0.0)
+
 **Learn Smart. Stay Cyber Safe.**
 
-CyberSaathi is a native Android cybersecurity education application built with Kotlin and Jetpack Compose. It empowers users, students, and digital citizens with practical digital security knowledge to defend against phishing, password theft, UPI payment scams, and online privacy intrusion.
+CyberSaathi is a native Android cybersecurity awareness and defensive learning application built with Kotlin and Jetpack Compose. It empowers students, everyday smartphone users, and digital citizens with practical digital security knowledge to defend against phishing, password theft, UPI payment scams, and online privacy intrusion.
 
 ---
 
-## 📲 Direct APK Download for Device Testing
+## 📥 DOWNLOAD APP APK (FOR TESTING)
 
-You can download and install the latest compiled CyberSaathi Android app directly onto your mobile phone or testing device:
+Click any of the download links below to download the latest **CyberSaathi APK** directly to your phone:
 
-👉 **[📥 Download CyberSaathi-debug.apk (Direct Download)](https://github.com/Dheerajchauhan3107/cybersaathi/raw/main/releases/CyberSaathi-debug.apk)**
+| File Name | Size | Direct Download Link |
+| :--- | :--- | :--- |
+| **`CyberSaathi-debug.apk`** | **18 MB** | [📥 **CLICK HERE TO DOWNLOAD APK**](https://github.com/Dheerajchauhan3107/cybersaathi/raw/main/releases/CyberSaathi-debug.apk) |
+
+### 📲 Alternative Download Mirrors:
+- 🚀 **Direct Download**: [Download CyberSaathi APK](https://github.com/Dheerajchauhan3107/cybersaathi/raw/main/releases/CyberSaathi-debug.apk)
+- 🌐 **GitHub Release Page**: [View Release v1.0.0](https://github.com/Dheerajchauhan3107/cybersaathi/releases/tag/v1.0.0)
 
 ---
 
-## ✨ Features
+## 📱 How to Install on Your Android Phone
+
+1. **Tap the Download Link** above in Google Chrome or your phone's browser.
+2. If Chrome displays *"File might be harmful"*, tap **"Download anyway"**.
+3. Open your phone's **Downloads** folder or tap the notification when finished.
+4. Tap **Install** and launch **CyberSaathi by DC DEVELOPERS**!
+
+---
+
+## ✨ Key Features
 
 - **100% Offline-First Architecture**: Zero budget, no external servers or paid APIs required.
 - **Strict Single-Viewport UI**: Built with Jetpack Compose using modern non-scrolling card layouts and bottom navigation.
@@ -40,7 +60,7 @@ You can download and install the latest compiled CyberSaathi Android app directl
 
 ---
 
-## 🛠️ Tech Stack & Build
+## 🛠️ Tech Stack & Build Information
 - **Language**: Kotlin 100%
 - **UI Framework**: Jetpack Compose (Material 3)
 - **Architecture**: MVVM / StateFlow / Local SharedPreferences
