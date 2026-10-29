@@ -31,8 +31,8 @@ fun LabHubScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 16.dp, vertical = 10.dp)
-            .padding(bottom = 60.dp), // Prevent bottom navigation overlap
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .navigationBarsPadding(),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         TopBar(title = "PRACTICE LABS", subtitle = "Interactive Defensive Simulations", onBack = onBack)
@@ -45,81 +45,99 @@ fun LabHubScreen(
             letterSpacing = 1.2.sp
         )
 
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            labs.forEach { lab ->
-                val isCompleted = progress.completedLabs.contains(lab.id)
+        if (labs.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "No practice labs available.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 13.sp
+                )
+            }
+        } else {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.weight(1f, fill = false)
+            ) {
+                labs.forEach { lab ->
+                    val isCompleted = progress.completedLabs.contains(lab.id)
 
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onSelectLab(lab) },
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    Row(
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .clickable { onSelectLab(lab) },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                     ) {
-                        Box(
+                        Row(
                             modifier = Modifier
-                                .size(38.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(if (isCompleted) GreenSuccess.copy(alpha = 0.15f) else Color(0xFF1B3440)),
-                            contentAlignment = Alignment.Center
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                if (isCompleted) Icons.Filled.CheckCircle else Icons.Filled.Science,
-                                contentDescription = null,
-                                tint = if (isCompleted) GreenSuccess else CyanCyber,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-
-                        Spacer(Modifier.width(10.dp))
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                            Box(
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(if (isCompleted) GreenSuccess.copy(alpha = 0.15f) else Color(0xFF1B3440)),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    lab.title,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    maxLines = 1,
-                                    modifier = Modifier.weight(1f)
+                                Icon(
+                                    if (isCompleted) Icons.Filled.CheckCircle else Icons.Filled.Science,
+                                    contentDescription = null,
+                                    tint = if (isCompleted) GreenSuccess else CyanCyber,
+                                    modifier = Modifier.size(20.dp)
                                 )
-
-                                Spacer(Modifier.width(6.dp))
-
-                                // Compact Horizontal Status Chip
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(if (isCompleted) GreenSuccess.copy(alpha = 0.2f) else CyanCyber.copy(alpha = 0.15f))
-                                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                                ) {
-                                    Text(
-                                        text = if (isCompleted) "COMPLETED" else "+${lab.xpReward} XP",
-                                        color = if (isCompleted) GreenSuccess else CyanCyber,
-                                        fontSize = 9.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
                             }
 
-                            Spacer(Modifier.height(2.dp))
+                            Spacer(Modifier.width(10.dp))
 
-                            Text(
-                                lab.description,
-                                fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1
-                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        lab.title,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        maxLines = 1,
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    Spacer(Modifier.width(6.dp))
+
+                                    // Compact Horizontal Status Chip
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(if (isCompleted) GreenSuccess.copy(alpha = 0.2f) else CyanCyber.copy(alpha = 0.15f))
+                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = if (isCompleted) "COMPLETED" else "+${lab.xpReward} XP",
+                                            color = if (isCompleted) GreenSuccess else CyanCyber,
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+
+                                Spacer(Modifier.height(2.dp))
+
+                                Text(
+                                    lab.description,
+                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1
+                                )
+                            }
                         }
                     }
                 }

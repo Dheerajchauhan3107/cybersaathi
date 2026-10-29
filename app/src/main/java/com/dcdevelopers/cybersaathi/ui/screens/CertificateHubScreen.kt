@@ -37,8 +37,8 @@ fun CertificateHubScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 16.dp, vertical = 10.dp)
-            .padding(bottom = 60.dp), // Prevent bottom navigation overlap
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .navigationBarsPadding(),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         TopBar(title = "CERTIFICATES", subtitle = "Earned & Available Credentials", onBack = onBack)
@@ -64,13 +64,29 @@ fun CertificateHubScreen(
             )
         }
 
-        // 3 Compact Cards in Viewport
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Measured Compact Cards List
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.weight(1f, fill = false)
+        ) {
             pagedCerts.forEach { cert ->
                 val quizScore = progress.quizScores[cert.requiredQuizId] ?: 0
                 val isLessonCompleted = progress.completedLessons.contains(cert.courseId)
                 val isLabCompleted = cert.requiredLabId == null || progress.completedLabs.contains(cert.requiredLabId)
                 val isEligible = isLessonCompleted && isLabCompleted && (quizScore >= cert.passingScore)
+                val isAvailableToAttempt = isLessonCompleted && !isEligible
+
+                val statusText = when {
+                    isEligible -> "EARNED"
+                    isAvailableToAttempt -> "AVAILABLE"
+                    else -> "LOCKED"
+                }
+
+                val statusColor = when {
+                    isEligible -> GreenSuccess
+                    isAvailableToAttempt -> CyanCyber
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                }
 
                 Card(
                     modifier = Modifier
@@ -125,12 +141,12 @@ fun CertificateHubScreen(
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(6.dp))
-                                        .background(if (isEligible) GreenSuccess.copy(alpha = 0.2f) else MaterialTheme.colorScheme.background)
+                                        .background(statusColor.copy(alpha = 0.15f))
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text(
-                                        text = if (isEligible) "EARNED" else "LOCKED",
-                                        color = if (isEligible) GreenSuccess else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        text = statusText,
+                                        color = statusColor,
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -151,15 +167,17 @@ fun CertificateHubScreen(
             }
         }
 
-        // Pagination Controls
+        // Pagination Controls Always Visible Above Navigation Bars
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             OutlinedButton(
                 onClick = { if (safePage > 0) currentPage-- },
                 enabled = (safePage > 0),
-                modifier = Modifier.weight(1f).height(44.dp),
+                modifier = Modifier.weight(1f).height(42.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(Icons.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -170,7 +188,7 @@ fun CertificateHubScreen(
             Button(
                 onClick = { if (safePage < totalPages - 1) currentPage++ },
                 enabled = (safePage < totalPages - 1),
-                modifier = Modifier.weight(1f).height(44.dp),
+                modifier = Modifier.weight(1f).height(42.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = CyanCyber, contentColor = BackgroundCyber)
             ) {
