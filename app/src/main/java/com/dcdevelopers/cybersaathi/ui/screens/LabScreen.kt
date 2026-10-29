@@ -67,6 +67,7 @@ fun LabScreen(
             LabType.PASSWORD_STRENGTH -> PasswordStrengthLab { isCompleted = true }
             LabType.PERMISSION_AUDITOR -> PermissionAuditorLab { isCompleted = true }
             LabType.UPI_SCAM_DEFENDER -> UpiScamLab { isCompleted = true }
+            else -> PhishingInspectorLab { isCompleted = true }
         }
 
         if (isCompleted) {

@@ -1,7 +1,6 @@
 package com.dcdevelopers.cybersaathi.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -29,18 +28,20 @@ fun CertificateHubScreen(
     onBack: () -> Unit
 ) {
     var currentPage by remember { mutableStateOf(0) }
-    val pageSize = 4
+    val pageSize = 3
     val totalPages = ((certificates.size - 1) / pageSize) + 1
-    val pagedCerts = certificates.drop(currentPage * pageSize).take(pageSize)
+    val safePage = currentPage.coerceIn(0, (totalPages - 1).coerceAtLeast(0))
+    val pagedCerts = certificates.drop(safePage * pageSize).take(pageSize)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(horizontal = 16.dp, vertical = 10.dp)
+            .padding(bottom = 60.dp), // Prevent bottom navigation overlap
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        TopBar(title = "CERTIFICATE CREDENTIALS", subtitle = "Earned & Available Credentials", onBack = onBack)
+        TopBar(title = "CERTIFICATES", subtitle = "Earned & Available Credentials", onBack = onBack)
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -48,7 +49,7 @@ fun CertificateHubScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "COURSE CERTIFICATES (${certificates.size})",
+                "CREDENTIALS (${certificates.size})",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
@@ -56,19 +57,20 @@ fun CertificateHubScreen(
             )
 
             Text(
-                "Page ${currentPage + 1} of $totalPages",
+                "Page ${safePage + 1} of $totalPages",
                 color = CyanCyber,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold
             )
         }
 
-        // 4 Compact Cards in Viewport
+        // 3 Compact Cards in Viewport
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             pagedCerts.forEach { cert ->
                 val quizScore = progress.quizScores[cert.requiredQuizId] ?: 0
                 val isLessonCompleted = progress.completedLessons.contains(cert.courseId)
-                val isEligible = isLessonCompleted && (quizScore >= cert.passingScore)
+                val isLabCompleted = cert.requiredLabId == null || progress.completedLabs.contains(cert.requiredLabId)
+                val isEligible = isLessonCompleted && isLabCompleted && (quizScore >= cert.passingScore)
 
                 Card(
                     modifier = Modifier
@@ -80,12 +82,14 @@ fun CertificateHubScreen(
                     )
                 ) {
                     Row(
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(38.dp)
                                 .clip(CircleShape)
                                 .background(if (isEligible) CyanCyber.copy(alpha = 0.2f) else MaterialTheme.colorScheme.background),
                             contentAlignment = Alignment.Center
@@ -94,29 +98,53 @@ fun CertificateHubScreen(
                                 if (isEligible) Icons.Filled.WorkspacePremium else Icons.Filled.Lock,
                                 contentDescription = null,
                                 tint = if (isEligible) CyanCyber else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(22.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                         }
 
                         Spacer(Modifier.width(10.dp))
 
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                cert.courseTitle,
-                                color = if (isEligible) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 13.sp
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    cert.courseTitle,
+                                    color = if (isEligible) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    maxLines = 1,
+                                    modifier = Modifier.weight(1f)
+                                )
+
+                                Spacer(Modifier.width(6.dp))
+
+                                // Compact Horizontal Status Chip
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(if (isEligible) GreenSuccess.copy(alpha = 0.2f) else MaterialTheme.colorScheme.background)
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = if (isEligible) "EARNED" else "LOCKED",
+                                        color = if (isEligible) GreenSuccess else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+
+                            Spacer(Modifier.height(2.dp))
 
                             Text(
-                                if (isEligible) "Ready to View & Export Certificate" else "Requires: Complete lesson & Quiz score >= 70% (Current: $quizScore%)",
+                                text = if (isEligible) "Tap to view and export certificate" else "Req: Lesson + Lab + Quiz >= 70% (Score: $quizScore%)",
                                 color = if (isEligible) GreenSuccess else MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 10.sp
+                                fontSize = 10.sp,
+                                maxLines = 1
                             )
-                        }
-
-                        if (isEligible) {
-                            Text("VIEW", color = CyanCyber, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -129,8 +157,8 @@ fun CertificateHubScreen(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             OutlinedButton(
-                onClick = { if (currentPage > 0) currentPage-- },
-                enabled = (currentPage > 0),
+                onClick = { if (safePage > 0) currentPage-- },
+                enabled = (safePage > 0),
                 modifier = Modifier.weight(1f).height(44.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
@@ -140,13 +168,13 @@ fun CertificateHubScreen(
             }
 
             Button(
-                onClick = { if (currentPage < totalPages - 1) currentPage++ },
-                enabled = (currentPage < totalPages - 1),
+                onClick = { if (safePage < totalPages - 1) currentPage++ },
+                enabled = (safePage < totalPages - 1),
                 modifier = Modifier.weight(1f).height(44.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = CyanCyber, contentColor = BackgroundCyber)
             ) {
-                Text("Next Page", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text("Next", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.width(6.dp))
                 Icon(Icons.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
             }

@@ -3,7 +3,6 @@ package com.dcdevelopers.cybersaathi.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -32,13 +31,14 @@ fun LabHubScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(horizontal = 16.dp, vertical = 10.dp)
+            .padding(bottom = 60.dp), // Prevent bottom navigation overlap
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         TopBar(title = "PRACTICE LABS", subtitle = "Interactive Defensive Simulations", onBack = onBack)
 
         Text(
-            "OFFLINE DEFENSIVE LABS (${labs.size})",
+            "DEFENSIVE LABS (${labs.size})",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
@@ -57,12 +57,14 @@ fun LabHubScreen(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Row(
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(38.dp)
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(if (isCompleted) GreenSuccess.copy(alpha = 0.15f) else Color(0xFF1B3440)),
                             contentAlignment = Alignment.Center
@@ -78,17 +80,47 @@ fun LabHubScreen(
                         Spacer(Modifier.width(10.dp))
 
                         Column(modifier = Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(lab.title, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = MaterialTheme.colorScheme.onBackground)
-                                if (isCompleted) {
-                                    Spacer(Modifier.width(6.dp))
-                                    Text("COMPLETED", color = GreenSuccess, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    lab.title,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    maxLines = 1,
+                                    modifier = Modifier.weight(1f)
+                                )
+
+                                Spacer(Modifier.width(6.dp))
+
+                                // Compact Horizontal Status Chip
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(if (isCompleted) GreenSuccess.copy(alpha = 0.2f) else CyanCyber.copy(alpha = 0.15f))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = if (isCompleted) "COMPLETED" else "+${lab.xpReward} XP",
+                                        color = if (isCompleted) GreenSuccess else CyanCyber,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 }
                             }
-                            Text(lab.description, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
-                        }
 
-                        Text("+${lab.xpReward} XP", color = GreenSuccess, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.height(2.dp))
+
+                            Text(
+                                lab.description,
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1
+                            )
+                        }
                     }
                 }
             }

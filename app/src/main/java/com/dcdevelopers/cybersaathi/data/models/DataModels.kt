@@ -57,7 +57,10 @@ enum class LabType {
     URL_ANALYZER,
     PASSWORD_STRENGTH,
     PERMISSION_AUDITOR,
-    UPI_SCAM_DEFENDER
+    UPI_SCAM_DEFENDER,
+    LOG_INVESTIGATOR,
+    SQL_INJECTION_DEFENDER,
+    XSS_DEFENDER
 }
 
 data class Lab(
@@ -92,5 +95,6 @@ data class CourseCertificate(
     val courseTitle: String,
     val category: String,
     val requiredQuizId: String,
+    val requiredLabId: String? = null,
     val passingScore: Int = 70
 )
