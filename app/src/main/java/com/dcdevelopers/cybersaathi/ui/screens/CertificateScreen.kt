@@ -100,26 +100,24 @@ fun CertificateScreen(
             }
         }
 
-        // Export / Share Actions
+        // Export PDF / Share Actions
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Button(
                 onClick = {
-                    val certFile = CertificateExporter.generateAndShareCertificate(context, displayName, courseTitle, certId)
-                    if (certFile != null) {
-                        CertificateExporter.shareCertificateFile(context, certFile)
-                        Toast.makeText(context, "Certificate exported to cache!", Toast.LENGTH_SHORT).show()
-                    }
+                    val pdfFile = CertificateExporter.generateCertificatePdf(context, displayName, courseTitle, certId)
+                    CertificateExporter.sharePdfCertificate(context, pdfFile)
+                    Toast.makeText(context, "PDF Certificate generated & ready to share!", Toast.LENGTH_SHORT).show()
                 },
                 modifier = Modifier.weight(1f).height(46.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = CyanCyber, contentColor = BackgroundCyber)
             ) {
-                Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(Icons.Filled.PictureAsPdf, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("EXPORT & SHARE", fontWeight = FontWeight.ExtraBold, fontSize = 12.sp)
+                Text("EXPORT PDF CERTIFICATE", fontWeight = FontWeight.ExtraBold, fontSize = 12.sp)
             }
         }
     }

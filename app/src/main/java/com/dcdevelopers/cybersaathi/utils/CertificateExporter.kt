@@ -3,6 +3,7 @@ package com.dcdevelopers.cybersaathi.utils
 import android.content.Context
 import android.content.Intent
 import android.graphics.*
+import android.graphics.pdf.PdfDocument
 import android.net.Uri
 import androidx.core.content.FileProvider
 import java.io.File
@@ -12,16 +13,18 @@ import java.util.*
 
 object CertificateExporter {
 
-    fun generateAndShareCertificate(
+    fun generateCertificatePdf(
         context: Context,
         displayName: String,
         courseTitle: String,
         certId: String
-    ): File? {
+    ): File {
+        val pdfDocument = PdfDocument()
         val width = 1200
         val height = 800
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
+        val pageInfo = PdfDocument.PageInfo.Builder(width, height, 1).create()
+        val page = pdfDocument.startPage(pageInfo)
+        val canvas = page.canvas
 
         // Background
         val bgPaint = Paint().apply { color = Color.parseColor("#070B14") }
@@ -43,7 +46,7 @@ object CertificateExporter {
         }
         canvas.drawRect(45f, 45f, (width - 45).toFloat(), (height - 45).toFloat(), innerBorderPaint)
 
-        // Text Paint - Header
+        // Brand
         val brandPaint = Paint().apply {
             color = Color.parseColor("#54F1E8")
             textSize = 32f
@@ -103,30 +106,33 @@ object CertificateExporter {
         canvas.drawText("DATE ISSUED: $dateStr", 80f, 700f, footerPaint)
         canvas.drawText("VERIFICATION ID: $certId", width - 420f, 700f, footerPaint)
 
-        // Save Bitmap to File
-        val imagesDir = File(context.cacheDir, "certificates")
-        imagesDir.mkdirs()
-        val certFile = File(imagesDir, "CyberSaathi_Cert_${certId}.png")
+        pdfDocument.finishPage(page)
 
-        FileOutputStream(certFile).use { out ->
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+        // Save PDF
+        val certsDir = File(context.cacheDir, "certificates")
+        certsDir.mkdirs()
+        val pdfFile = File(certsDir, "CyberSaathi_Cert_${certId}.pdf")
+
+        FileOutputStream(pdfFile).use { out ->
+            pdfDocument.writeTo(out)
         }
+        pdfDocument.close()
 
-        return certFile
+        return pdfFile
     }
 
-    fun shareCertificateFile(context: Context, certFile: File) {
+    fun sharePdfCertificate(context: Context, pdfFile: File) {
         val uri: Uri = FileProvider.getUriForFile(
             context,
             "${context.packageName}.fileprovider",
-            certFile
+            pdfFile
         )
         val shareIntent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_STREAM, uri)
-            type = "image/png"
+            type = "application/pdf"
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        context.startActivity(Intent.createChooser(shareIntent, "Share CyberSaathi Certificate"))
+        context.startActivity(Intent.createChooser(shareIntent, "Share CyberSaathi PDF Certificate"))
     }
 }
