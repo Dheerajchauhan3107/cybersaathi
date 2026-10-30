@@ -30,7 +30,7 @@ sealed class ScreenState {
         val quizId: String,
         val lessonTitle: String
     ) : ScreenState()
-    data class CertificateView(val displayName: String, val courseTitle: String) : ScreenState()
+    data class CertificateView(val displayName: String, val courseTitle: String, val isSample: Boolean = false) : ScreenState()
     object Profile : ScreenState()
     object Settings : ScreenState()
     object PrivacyPolicy : ScreenState()
@@ -50,12 +50,11 @@ fun CyberSaathiAppNavigation(
     }
 
     val selectedTab = when (currentScreen) {
-        ScreenState.Home -> BottomTab.HOME
+        ScreenState.Onboarding, ScreenState.Home -> BottomTab.HOME
         ScreenState.LearningHub, is ScreenState.LessonView, is ScreenState.QuizView -> BottomTab.LEARN
         ScreenState.LabHub, is ScreenState.LabView -> BottomTab.PRACTICE
         ScreenState.CertificateHub, is ScreenState.CertificateView, is ScreenState.ResultView -> BottomTab.PROGRESS
         ScreenState.Profile, ScreenState.Settings, ScreenState.PrivacyPolicy, ScreenState.About -> BottomTab.PROFILE
-        else -> BottomTab.HOME
     }
 
     CyberSaathiTheme(themePreference = progress.themePreference) {
@@ -141,7 +140,15 @@ fun CyberSaathiAppNavigation(
                             onSelectCertificate = { cert ->
                                 currentScreen = ScreenState.CertificateView(
                                     displayName = progress.displayName,
-                                    courseTitle = cert.courseTitle
+                                    courseTitle = cert.courseTitle,
+                                    isSample = false
+                                )
+                            },
+                            onOpenSamplePreview = {
+                                currentScreen = ScreenState.CertificateView(
+                                    displayName = "Your Name",
+                                    courseTitle = "Cybersecurity Fundamentals",
+                                    isSample = true
                                 )
                             },
                             onBack = { currentScreen = ScreenState.Home }
@@ -226,7 +233,8 @@ fun CyberSaathiAppNavigation(
                                 {
                                     currentScreen = ScreenState.CertificateView(
                                         displayName = progress.displayName,
-                                        courseTitle = screen.lessonTitle
+                                        courseTitle = screen.lessonTitle,
+                                        isSample = false
                                     )
                                 }
                             } else null,
@@ -238,6 +246,10 @@ fun CyberSaathiAppNavigation(
                         CertificateScreen(
                             displayName = screen.displayName,
                             courseTitle = screen.courseTitle,
+                            isSample = screen.isSample,
+                            onUpdateDisplayName = { newName ->
+                                progressRepository.updateDisplayName(newName)
+                            },
                             onBack = { currentScreen = ScreenState.CertificateHub }
                         )
                     }

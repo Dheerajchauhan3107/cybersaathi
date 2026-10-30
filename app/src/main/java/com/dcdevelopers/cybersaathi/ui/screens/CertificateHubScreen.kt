@@ -1,6 +1,7 @@
 package com.dcdevelopers.cybersaathi.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -25,10 +26,11 @@ fun CertificateHubScreen(
     certificates: List<CourseCertificate>,
     progress: UserProgress,
     onSelectCertificate: (CourseCertificate) -> Unit,
+    onOpenSamplePreview: () -> Unit,
     onBack: () -> Unit
 ) {
     var currentPage by remember { mutableStateOf(0) }
-    val pageSize = 3
+    val pageSize = 2
     val totalPages = ((certificates.size - 1) / pageSize) + 1
     val safePage = currentPage.coerceIn(0, (totalPages - 1).coerceAtLeast(0))
     val pagedCerts = certificates.drop(safePage * pageSize).take(pageSize)
@@ -43,13 +45,57 @@ fun CertificateHubScreen(
     ) {
         TopBar(title = "CERTIFICATES", subtitle = "Earned & Available Credentials", onBack = onBack)
 
+        // Sample Certificate Banner
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.5.dp, YellowWarning.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .background(YellowWarning.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Filled.Visibility, contentDescription = null, tint = YellowWarning, modifier = Modifier.size(20.dp))
+                }
+
+                Spacer(Modifier.width(10.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("SAMPLE CERTIFICATE PREVIEW", color = YellowWarning, fontWeight = FontWeight.Bold, fontSize = 11.sp, letterSpacing = 0.8.sp)
+                    Text("Preview the certificate design with placeholder 'Your Name'.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+                }
+
+                Spacer(Modifier.width(6.dp))
+
+                Button(
+                    onClick = onOpenSamplePreview,
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = YellowWarning, contentColor = BackgroundCyber)
+                ) {
+                    Text("PREVIEW", fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                }
+            }
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "CREDENTIALS (${certificates.size})",
+                "COURSE CERTIFICATES (${certificates.size})",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
@@ -64,7 +110,7 @@ fun CertificateHubScreen(
             )
         }
 
-        // Measured Compact Cards List
+        // Paged Certificate Cards with Eligibility Checklist
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.weight(1f, fill = false)
@@ -74,19 +120,9 @@ fun CertificateHubScreen(
                 val isLessonCompleted = progress.completedLessons.contains(cert.courseId)
                 val isLabCompleted = cert.requiredLabId == null || progress.completedLabs.contains(cert.requiredLabId)
                 val isEligible = isLessonCompleted && isLabCompleted && (quizScore >= cert.passingScore)
-                val isAvailableToAttempt = isLessonCompleted && !isEligible
 
-                val statusText = when {
-                    isEligible -> "EARNED"
-                    isAvailableToAttempt -> "AVAILABLE"
-                    else -> "LOCKED"
-                }
-
-                val statusColor = when {
-                    isEligible -> GreenSuccess
-                    isAvailableToAttempt -> CyanCyber
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                }
+                val statusText = if (isEligible) "EARNED" else "LOCKED"
+                val statusColor = if (isEligible) GreenSuccess else MaterialTheme.colorScheme.onSurfaceVariant
 
                 Card(
                     modifier = Modifier
@@ -97,77 +133,59 @@ fun CertificateHubScreen(
                         containerColor = if (isEligible) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     )
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(38.dp)
-                                .clip(CircleShape)
-                                .background(if (isEligible) CyanCyber.copy(alpha = 0.2f) else MaterialTheme.colorScheme.background),
-                            contentAlignment = Alignment.Center
+                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
                                 if (isEligible) Icons.Filled.WorkspacePremium else Icons.Filled.Lock,
                                 contentDescription = null,
                                 tint = if (isEligible) CyanCyber else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(18.dp)
                             )
-                        }
 
-                        Spacer(Modifier.width(10.dp))
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    cert.courseTitle,
-                                    color = if (isEligible) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 12.sp,
-                                    maxLines = 1,
-                                    modifier = Modifier.weight(1f)
-                                )
-
-                                Spacer(Modifier.width(6.dp))
-
-                                // Compact Horizontal Status Chip
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(statusColor.copy(alpha = 0.15f))
-                                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                                ) {
-                                    Text(
-                                        text = statusText,
-                                        color = statusColor,
-                                        fontSize = 9.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-
-                            Spacer(Modifier.height(2.dp))
+                            Spacer(Modifier.width(8.dp))
 
                             Text(
-                                text = if (isEligible) "Tap to view and export certificate" else "Req: Lesson + Lab + Quiz >= 70% (Score: $quizScore%)",
-                                color = if (isEligible) GreenSuccess else MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 10.sp,
-                                maxLines = 1
+                                cert.courseTitle,
+                                color = if (isEligible) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                                maxLines = 1,
+                                modifier = Modifier.weight(1f)
                             )
+
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(statusColor.copy(alpha = 0.15f))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = statusText,
+                                    color = statusColor,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        // Requirements Checklist Row
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            RequirementCheckItem("Theory", isLessonCompleted)
+                            RequirementCheckItem("Quiz ($quizScore%/70%)", quizScore >= cert.passingScore)
+                            RequirementCheckItem("Lab", isLabCompleted)
                         }
                     }
                 }
             }
         }
 
-        // Pagination Controls Always Visible Above Navigation Bars
+        // Pagination Controls
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -197,5 +215,24 @@ fun CertificateHubScreen(
                 Icon(Icons.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
             }
         }
+    }
+}
+
+@Composable
+private fun RequirementCheckItem(label: String, isMet: Boolean) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            if (isMet) Icons.Filled.CheckCircle else Icons.Filled.Cancel,
+            contentDescription = null,
+            tint = if (isMet) GreenSuccess else RedError,
+            modifier = Modifier.size(12.dp)
+        )
+        Spacer(Modifier.width(4.dp))
+        Text(
+            label,
+            color = if (isMet) GreenSuccess else MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }
