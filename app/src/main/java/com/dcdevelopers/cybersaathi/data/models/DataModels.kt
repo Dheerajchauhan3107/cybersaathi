@@ -35,6 +35,25 @@ data class Lesson(
     val labId: String? = null
 )
 
+data class CourseModule(
+    val id: String,
+    val title: String,
+    val description: String,
+    val lessonIds: List<String>
+)
+
+data class Course(
+    val id: String,
+    val title: String,
+    val description: String,
+    val iconName: String,
+    val category: String,
+    val modules: List<CourseModule>,
+    val quizId: String,
+    val labId: String? = null,
+    val certificateId: String
+)
+
 data class QuizQuestion(
     val id: String,
     val questionText: String,

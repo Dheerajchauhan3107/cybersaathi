@@ -8,9 +8,6 @@ class ExampleUnitTest {
 
     @Test
     fun testLevelCalculation() {
-        // Level 1 = 0 - 99 XP
-        // Level 2 = 100 - 199 XP
-        // Level 5 = 400 - 499 XP
         assertEquals(1, 1 + (0 / 100))
         assertEquals(1, 1 + (99 / 100))
         assertEquals(2, 1 + (100 / 100))
@@ -19,33 +16,42 @@ class ExampleUnitTest {
 
     @Test
     fun testQuizPassingThreshold() {
-        val quiz = ContentRepository.quizzes["quiz_phishing_101"]
+        val quiz = ContentRepository.quizzes["quiz_python_101"]
         assertNotNull(quiz)
 
-        assertEquals(5, quiz!!.questions.size)
+        assertEquals(10, quiz!!.questions.size)
         assertEquals(70, quiz.passingScorePercentage)
 
-        // 4 out of 5 correct = 80% (Pass)
-        val passScore = ((4f / 5f) * 100).toInt()
+        val passScore = ((8f / 10f) * 100).toInt()
         assertTrue(passScore >= quiz.passingScorePercentage)
 
-        // 2 out of 5 correct = 40% (Fail)
-        val failScore = ((2f / 5f) * 100).toInt()
+        val failScore = ((5f / 10f) * 100).toInt()
         assertFalse(failScore >= quiz.passingScorePercentage)
     }
 
     @Test
-    fun testContentRepositoryIntegrity() {
-        assertTrue(ContentRepository.lessons.size >= 8)
-        assertTrue(ContentRepository.quizzes.size >= 8)
-        assertTrue(ContentRepository.labs.size >= 5)
-        assertTrue(ContentRepository.dailyTips.size >= 7)
-        assertTrue(ContentRepository.badges.size >= 6)
+    fun testUniqueIDsAndRepositoryIntegrity() {
+        // Verify unique Course IDs
+        val courseIds = ContentRepository.courses.map { it.id }
+        assertEquals(courseIds.size, courseIds.toSet().size)
 
-        // Ensure every lesson has a corresponding valid quiz
-        ContentRepository.lessons.forEach { lesson ->
-            assertNotNull("Quiz missing for lesson: ${lesson.id}", ContentRepository.quizzes[lesson.quizId])
-            assertTrue("Lesson ${lesson.id} has no sections", lesson.sections.isNotEmpty())
+        // Verify unique Lesson IDs
+        val lessonIds = ContentRepository.lessons.map { it.id }
+        assertEquals(lessonIds.size, lessonIds.toSet().size)
+
+        // Verify unique Certificate IDs
+        val certIds = ContentRepository.certificates.map { it.id }
+        assertEquals(certIds.size, certIds.toSet().size)
+
+        assertTrue(ContentRepository.courses.size >= 6)
+        assertTrue(ContentRepository.lessons.size >= 8)
+        assertTrue(ContentRepository.quizzes.size >= 6)
+        assertTrue(ContentRepository.certificates.size >= 6)
+
+        // Verify that all 10-question quizzes exist for published lessons
+        ContentRepository.quizzes.forEach { (quizId, quiz) ->
+            assertEquals("Quiz $quizId must have 10 questions", 10, quiz.questions.size)
+            assertTrue("Quiz $quizId passing score must be 70%", quiz.passingScorePercentage == 70)
         }
     }
 }

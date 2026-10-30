@@ -1,7 +1,6 @@
 package com.dcdevelopers.cybersaathi.ui.screens
 
 import android.speech.tts.TextToSpeech
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -30,14 +29,11 @@ import java.util.Locale
 fun LessonScreen(
     lesson: Lesson,
     isAlreadyCompleted: Boolean,
-    onCompleteAndStartQuiz: () -> Unit,
+    onMarkLessonComplete: () -> Unit,
+    onStartQuiz: (() -> Unit)?,
     onStartLab: ((String) -> Unit)?,
     onBack: () -> Unit
 ) {
-    var currentSectionIndex by remember { mutableStateOf(0) }
-    val sectionCount = lesson.sections.size
-    val currentSection = lesson.sections[currentSectionIndex]
-
     val context = LocalContext.current
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
     var isSpeaking by remember { mutableStateOf(false) }
@@ -59,182 +55,183 @@ fun LessonScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState()) // Vertically scrollable theory pages as requested
+            .verticalScroll(rememberScrollState()) // One continuous vertically scrollable theory screen
             .padding(16.dp)
-            .padding(bottom = 60.dp), // Prevent bottom nav overlap
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .padding(bottom = 70.dp), // Clear bottom navigation insets
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        TopBar(title = lesson.title, subtitle = lesson.category, onBack = {
-            tts?.stop()
-            onBack()
-        })
+        TopBar(
+            title = lesson.title,
+            subtitle = lesson.category,
+            onBack = {
+                tts?.stop()
+                onBack()
+            }
+        )
 
-        // Progress Header Banner
+        // Lesson Overview Header Banner
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(18.dp))
                 .background(Brush.linearGradient(listOf(Color(0xFF153744), Color(0xFF17223B))))
-                .padding(14.dp)
+                .padding(16.dp)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         "${lesson.durationMinutes} MIN READ • ${lesson.difficulty.uppercase()}",
                         color = CyanCyber,
-                        fontSize = 10.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.2.sp
                     )
 
                     Spacer(Modifier.weight(1f))
 
-                    // Text-To-Speech Speaker Button
+                    // Text-To-Speech Read Aloud Control
                     IconButton(
                         onClick = {
                             if (isSpeaking) {
                                 tts?.stop()
                                 isSpeaking = false
                             } else {
-                                val speakText = "${currentSection.title}. ${currentSection.bodyText}"
-                                tts?.speak(speakText, TextToSpeech.QUEUE_FLUSH, null, null)
+                                val fullText = lesson.sections.joinToString(". ") { "${it.title}. ${it.bodyText}" }
+                                tts?.speak(fullText, TextToSpeech.QUEUE_FLUSH, null, null)
                                 isSpeaking = true
                             }
                         },
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
                             if (isSpeaking) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
                             contentDescription = "Read Aloud",
                             tint = if (isSpeaking) GreenSuccess else CyanCyber,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(22.dp)
                         )
                     }
-
-                    Spacer(Modifier.width(6.dp))
-
-                    Text(
-                        "PAGE ${currentSectionIndex + 1} OF $sectionCount",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold
-                    )
                 }
 
-                LinearProgressIndicator(
-                    progress = { (currentSectionIndex + 1).toFloat() / sectionCount },
-                    modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
-                    color = CyanCyber,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            }
-        }
-
-        // Section Title & Body
-        Text(
-            currentSection.title,
-            color = CyanCyber,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.ExtraBold
-        )
-
-        Card(
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Box(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    currentSection.bodyText,
+                    lesson.subtitle,
                     color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 13.sp,
-                    lineHeight = 20.sp
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
 
-        // Warning Tip Callout
-        if (currentSection.warningTip != null) {
-            Card(
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = YellowWarning.copy(alpha = 0.1f)),
-                modifier = Modifier.fillMaxWidth().border(1.dp, YellowWarning.copy(alpha = 0.5f), RoundedCornerShape(14.dp))
+        // All Lesson Sections Combined Continuously in Order
+        lesson.sections.forEachIndexed { index, section ->
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Warning, contentDescription = null, tint = YellowWarning, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(currentSection.warningTip, color = MaterialTheme.colorScheme.onBackground, fontSize = 11.sp, lineHeight = 15.sp)
-                }
-            }
-        }
+                Text(
+                    "${index + 1}. ${section.title}",
+                    color = CyanCyber,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
 
-        // Practical Example Callout
-        if (currentSection.practicalExample != null) {
-            Card(
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = CyanCyber.copy(alpha = 0.08f)),
-                modifier = Modifier.fillMaxWidth().border(1.dp, CyanCyber.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
-            ) {
-                Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Lightbulb, contentDescription = null, tint = CyanCyber, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(currentSection.practicalExample, color = MaterialTheme.colorScheme.onBackground, fontSize = 11.sp, lineHeight = 15.sp)
+                Card(
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Box(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            section.bodyText,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontSize = 14.sp,
+                            lineHeight = 22.sp
+                        )
+                    }
+                }
+
+                // Warning Tip Callout Card
+                if (section.warningTip != null) {
+                    Card(
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = YellowWarning.copy(alpha = 0.1f)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, YellowWarning.copy(alpha = 0.5f), RoundedCornerShape(14.dp))
+                    ) {
+                        Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Filled.Warning, contentDescription = null, tint = YellowWarning, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(10.dp))
+                            Text(section.warningTip, color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp, lineHeight = 17.sp)
+                        }
+                    }
+                }
+
+                // Practical Example Callout Card
+                if (section.practicalExample != null) {
+                    Card(
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = CyanCyber.copy(alpha = 0.08f)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, CyanCyber.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
+                    ) {
+                        Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Filled.Lightbulb, contentDescription = null, tint = CyanCyber, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(10.dp))
+                            Text(section.practicalExample, color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp, lineHeight = 17.sp)
+                        }
+                    }
                 }
             }
         }
 
         Spacer(Modifier.height(10.dp))
 
-        // Navigation Controls
-        Row(
+        // Action Controls (Independent of mandatory quiz navigation)
+        Column(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            if (currentSectionIndex > 0) {
+            Button(
+                onClick = {
+                    tts?.stop()
+                    onMarkLessonComplete()
+                },
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = if (isAlreadyCompleted) GreenSuccess else CyanCyber, contentColor = BackgroundCyber)
+            ) {
+                Icon(Icons.Filled.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(if (isAlreadyCompleted) "LESSON COMPLETED ✓" else "MARK LESSON AS COMPLETED", fontWeight = FontWeight.ExtraBold, fontSize = 12.sp)
+            }
+
+            if (onStartQuiz != null) {
                 OutlinedButton(
                     onClick = {
                         tts?.stop()
-                        isSpeaking = false
-                        currentSectionIndex--
+                        onStartQuiz()
                     },
-                    modifier = Modifier.weight(1f).height(46.dp),
-                    shape = RoundedCornerShape(12.dp)
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(14.dp)
                 ) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text("Previous Page", fontSize = 12.sp)
+                    Icon(Icons.Filled.Quiz, contentDescription = null, tint = CyanCyber, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("TAKE OPTIONAL QUIZ ASSESSMENT", color = CyanCyber, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 }
             }
 
-            if (currentSectionIndex < sectionCount - 1) {
-                Button(
+            if (lesson.labId != null && onStartLab != null) {
+                OutlinedButton(
                     onClick = {
                         tts?.stop()
-                        isSpeaking = false
-                        currentSectionIndex++
+                        onStartLab(lesson.labId)
                     },
-                    modifier = Modifier.weight(1f).height(46.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = CyanCyber, contentColor = BackgroundCyber)
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(14.dp)
                 ) {
-                    Text("Next Page", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                    Spacer(Modifier.width(4.dp))
-                    Icon(Icons.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
-                }
-            } else {
-                Button(
-                    onClick = {
-                        tts?.stop()
-                        isSpeaking = false
-                        onCompleteAndStartQuiz()
-                    },
-                    modifier = Modifier.weight(1f).height(46.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = CyanCyber, contentColor = BackgroundCyber)
-                ) {
-                    Icon(Icons.Filled.Quiz, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text(if (isAlreadyCompleted) "RETRACT & QUIZ" else "START QUIZ", fontWeight = FontWeight.ExtraBold, fontSize = 12.sp)
+                    Icon(Icons.Filled.Science, contentDescription = null, tint = CyanCyber, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("TRY DEFENSIVE PRACTICE LAB", color = CyanCyber, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 }
             }
         }

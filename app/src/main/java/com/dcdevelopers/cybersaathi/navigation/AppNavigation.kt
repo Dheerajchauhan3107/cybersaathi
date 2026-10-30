@@ -16,6 +16,7 @@ sealed class ScreenState {
     object Onboarding : ScreenState()
     object Home : ScreenState()
     object LearningHub : ScreenState()
+    data class CourseSyllabus(val courseId: String) : ScreenState()
     object LabHub : ScreenState()
     object CertificateHub : ScreenState()
     data class LessonView(val lessonId: String) : ScreenState()
@@ -51,7 +52,7 @@ fun CyberSaathiAppNavigation(
 
     val selectedTab = when (currentScreen) {
         ScreenState.Onboarding, ScreenState.Home -> BottomTab.HOME
-        ScreenState.LearningHub, is ScreenState.LessonView, is ScreenState.QuizView -> BottomTab.LEARN
+        ScreenState.LearningHub, is ScreenState.CourseSyllabus, is ScreenState.LessonView, is ScreenState.QuizView -> BottomTab.LEARN
         ScreenState.LabHub, is ScreenState.LabView -> BottomTab.PRACTICE
         ScreenState.CertificateHub, is ScreenState.CertificateView, is ScreenState.ResultView -> BottomTab.PROGRESS
         ScreenState.Profile, ScreenState.Settings, ScreenState.PrivacyPolicy, ScreenState.About -> BottomTab.PROFILE
@@ -122,6 +123,34 @@ fun CyberSaathiAppNavigation(
                         )
                     }
 
+                    is ScreenState.CourseSyllabus -> {
+                        val course = ContentRepository.courses.firstOrNull { it.id == screen.courseId }
+                            ?: ContentRepository.courses.first()
+
+                        CourseSyllabusScreen(
+                            course = course,
+                            allLessons = ContentRepository.lessons,
+                            progress = progress,
+                            onSelectLesson = { lesson ->
+                                currentScreen = ScreenState.LessonView(lesson.id)
+                            },
+                            onStartQuiz = { quizId ->
+                                currentScreen = ScreenState.QuizView(quizId)
+                            },
+                            onStartLab = if (course.labId != null) {
+                                { labId -> currentScreen = ScreenState.LabView(labId) }
+                            } else null,
+                            onViewCertificate = {
+                                currentScreen = ScreenState.CertificateView(
+                                    displayName = progress.displayName,
+                                    courseTitle = course.title,
+                                    isSample = false
+                                )
+                            },
+                            onBack = { currentScreen = ScreenState.LearningHub }
+                        )
+                    }
+
                     ScreenState.LabHub -> {
                         LabHubScreen(
                             labs = ContentRepository.labs,
@@ -164,8 +193,10 @@ fun CyberSaathiAppNavigation(
                         LessonScreen(
                             lesson = lesson,
                             isAlreadyCompleted = isCompleted,
-                            onCompleteAndStartQuiz = {
+                            onMarkLessonComplete = {
                                 progressRepository.completeLesson(lesson.id, xpReward = 30)
+                            },
+                            onStartQuiz = {
                                 currentScreen = ScreenState.QuizView(lesson.quizId)
                             },
                             onStartLab = if (lesson.labId != null) {
